@@ -63,6 +63,35 @@
       align-items: center;
       padding: 0.6em 1em;
     }
+    .send-bar {
+      display: flex;
+      gap: 0.8em;
+      justify-content: center;
+      margin-bottom: 1em;
+    }
+    .send-bar button {
+      flex: 1 1 30%;
+      font-size: 1em;
+      background: #10b981;
+      color: #fff;
+      border: none;
+      border-radius: 0.7em;
+      padding: 0.7em 0;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-weight: 500;
+    }
+    .send-bar button:active {
+      background: #047857;
+    }
+    .copy-status {
+      display: block;
+      text-align: center;
+      color: #16a34a;
+      min-height: 1.5em;
+      font-size: 1em;
+      margin-bottom: 1em;
+    }
     select {
       width: 100%;
       font-size: 1.08em;
@@ -104,7 +133,7 @@
     @media (max-width: 600px) {
       .container { padding: 1.1em 0.5em; }
       h2 { font-size: 1.3em; }
-      button { font-size: 1em; }
+      button, .send-bar button { font-size: 1em; }
       textarea { font-size: 0.97em; }
       .info-bar { font-size: 0.98em; }
     }
@@ -123,6 +152,12 @@
       <span id="wordCount"></span>
       <span id="duration"></span>
     </div>
+    <div class="send-bar">
+      <button onclick="copyText()">Copy</button>
+      <button onclick="sendSMS()">SMS</button>
+      <button onclick="sendEmail()">Email</button>
+    </div>
+    <span id="copyStatus" class="copy-status"></span>
     <label for="voiceSelect">Choose Voice</label>
     <select id="voiceSelect"></select>
     <label for="speedSelect">Speed</label>
@@ -259,6 +294,28 @@
         wordCount > 0
           ? `Estimated: ${formatDuration(duration)} @ ${speed}x`
           : '';
+    }
+
+    function copyText() {
+      const text = document.getElementById('text').value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(function() {
+        document.getElementById('copyStatus').innerText = "Copied!";
+        setTimeout(() => { document.getElementById('copyStatus').innerText = ""; }, 1500);
+      }, function(err) {
+        document.getElementById('copyStatus').innerText = "Copy failed.";
+      });
+    }
+
+    function sendSMS() {
+      const text = encodeURIComponent(document.getElementById('text').value);
+      window.location.href = `sms:?body=${text}`;
+    }
+
+    function sendEmail() {
+      const subject = encodeURIComponent('Text from Paste & Listen');
+      const body = encodeURIComponent(document.getElementById('text').value);
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
     // Initial info update and attach events
