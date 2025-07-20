@@ -35,9 +35,18 @@
       padding: 1em;
       border-radius: 0.8em;
       border: 1px solid #e2e8f0;
-      margin-bottom: 0.8em;
+      margin-bottom: 0.5em;
       box-sizing: border-box;
       resize: vertical;
+    }
+    .info-bar {
+      font-size: 1em;
+      color: #475569;
+      margin-bottom: 1em;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2em;
+      align-items: center;
     }
     select {
       width: 100%;
@@ -82,6 +91,7 @@
       h2 { font-size: 1.3em; }
       button { font-size: 1em; }
       textarea { font-size: 0.97em; }
+      .info-bar { font-size: 0.98em; }
     }
   </style>
 </head>
@@ -89,9 +99,21 @@
   <div class="container">
     <h2>Paste & Listen</h2>
     <label for="text">Text to Speak</label>
-    <textarea id="text" placeholder="Paste your text here..."></textarea>
+    <textarea id="text" placeholder="Paste your text here..." oninput="updateInfo()"></textarea>
+    <div class="info-bar">
+      <span id="wordCount"></span>
+      <span id="duration"></span>
+    </div>
     <label for="voiceSelect">Choose Voice</label>
     <select id="voiceSelect"></select>
+    <label for="speedSelect">Speed</label>
+    <select id="speedSelect" onchange="updateInfo()">
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x (Normal)</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
     <div class="controls">
       <button onclick="speak()">Read Aloud</button>
       <button onclick="pause()">Pause</button>
@@ -104,6 +126,7 @@
     let voices = [];
     let utterance;
     let stoppedByUser = false;
+    const DEFAULT_WPM = 150;
 
     function populateVoices() {
       voices = window.speechSynthesis.getVoices();
@@ -154,13 +177,17 @@
       utterance = new SpeechSynthesisUtterance(text);
       const voiceIdx = document.getElementById('voiceSelect').value;
       utterance.voice = voices[voiceIdx];
+      // Set speed/rate
+      const speed = parseFloat(document.getElementById('speedSelect').value);
+      utterance.rate = speed;
+
       utterance.onend = () => { document.getElementById('status').innerText = "Done speaking."; };
       utterance.onerror = (event) => {
         if (!stoppedByUser && event.error !== "interrupted") {
           document.getElementById('status').innerText = "Error speaking.";
         }
       };
-      document.getElementById('status').innerText = `Speaking (${utterance.voice.name})...`;
+      document.getElementById('status').innerText = `Speaking (${utterance.voice.name}, ${speed}x)...`;
       window.speechSynthesis.speak(utterance);
     }
     function pause() {
@@ -178,6 +205,45 @@
         document.getElementById('status').innerText = "Stopped.";
       }
     }
+
+    function countWords(text) {
+      // Split by whitespace, filter out empty results
+      return text.trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function formatDuration(minutes) {
+      // Return "X min Y sec"
+      const m = Math.floor(minutes);
+      const s = Math.round((minutes - m) * 60);
+      if (m > 0) {
+        return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+      } else {
+        return `${s}s`;
+      }
+    }
+
+    function updateInfo() {
+      const text = document.getElementById('text').value.trim();
+      const speed = parseFloat(document.getElementById('speedSelect').value);
+      const wordCount = countWords(text);
+
+      // Estimate duration (in minutes)
+      let duration = 0;
+      if (wordCount > 0) {
+        duration = wordCount / (DEFAULT_WPM * speed);
+      }
+
+      document.getElementById('wordCount').innerText = `Words: ${wordCount}`;
+      document.getElementById('duration').innerText =
+        wordCount > 0
+          ? `Estimated: ${formatDuration(duration)} @ ${speed}x`
+          : '';
+    }
+
+    // Initial info update and attach events
+    window.onload = updateInfo;
+    document.getElementById('text').addEventListener('input', updateInfo);
+    document.getElementById('speedSelect').addEventListener('change', updateInfo);
   </script>
 </body>
 </html>
