@@ -130,6 +130,13 @@
       min-height: 1.5em;
       margin-top: 0.6em;
     }
+    .footer {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.97em;
+      margin-top: 2em;
+      margin-bottom: 1em;
+    }
     @media (max-width: 600px) {
       .container { padding: 1.1em 0.5em; }
       h2 { font-size: 1.3em; }
@@ -176,11 +183,15 @@
     <span id="copyStatus" class="copy-status"></span>
     <p id="status"></p>
   </div>
+  <div class="footer">
+    <span>Made with ❤️ — Powered by <a href="https://readoutloud.vercel.app/" target="_blank" style="color:#2563eb;text-decoration:none;">Read Out Loud</a></span>
+  </div>
   <script>
     let voices = [];
     let utterance;
     let stoppedByUser = false;
     const DEFAULT_WPM = 150;
+    const attribution = "\n\nPowered by Read Out Loud: https://readoutloud.vercel.app/";
 
     function populateVoices() {
       voices = window.speechSynthesis.getVoices();
@@ -296,7 +307,8 @@
     function copyText() {
       const text = document.getElementById('text').value;
       if (!text) return;
-      navigator.clipboard.writeText(text).then(function() {
+      const toCopy = text + attribution;
+      navigator.clipboard.writeText(toCopy).then(function() {
         document.getElementById('copyStatus').innerText = "Copied!";
         setTimeout(() => { document.getElementById('copyStatus').innerText = ""; }, 1500);
       }, function(err) {
@@ -305,13 +317,15 @@
     }
 
     function sendSMS() {
-      const text = encodeURIComponent(document.getElementById('text').value);
-      window.location.href = `sms:?body=${text}`;
+      const text = document.getElementById('text').value + attribution;
+      const smsBody = encodeURIComponent(text);
+      window.location.href = `sms:?body=${smsBody}`;
     }
 
     function sendEmail() {
       const subject = encodeURIComponent('Text from Paste & Listen');
-      const body = encodeURIComponent(document.getElementById('text').value);
+      const text = document.getElementById('text').value + attribution;
+      const body = encodeURIComponent(text);
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
     }
 
