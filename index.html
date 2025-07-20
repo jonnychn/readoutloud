@@ -30,7 +30,7 @@
     }
     textarea {
       width: 100%;
-      min-height: 110px;
+      min-height: 220px;
       font-size: 1em;
       padding: 1em;
       border-radius: 0.8em;
@@ -96,12 +96,15 @@
       <button onclick="speak()">Read Aloud</button>
       <button onclick="pause()">Pause</button>
       <button onclick="resume()">Resume</button>
-      <button onclick="stop()">Stop</button>
+      <button onclick="stopSpeech()">Stop</button>
     </div>
     <p id="status"></p>
   </div>
   <script>
     let voices = [];
+    let utterance;
+    let stoppedByUser = false;
+
     function populateVoices() {
       voices = window.speechSynthesis.getVoices();
       const voiceSelect = document.getElementById('voiceSelect');
@@ -122,27 +125,32 @@
           break;
         }
       }
-      // Else default
       if (!foundAaron && voices.length) voiceSelect.value = 0;
     }
+
     populateVoices();
     if (speechSynthesis.onvoiceschanged !== undefined) {
       speechSynthesis.onvoiceschanged = populateVoices;
     }
 
-    let utterance;
     function speak() {
       const text = document.getElementById('text').value.trim();
       if (!text) {
         document.getElementById('status').innerText = "Please paste some text.";
         return;
       }
-      stop();
+      stopSpeech(); // Stop any ongoing speech
+      stoppedByUser = false;
       utterance = new SpeechSynthesisUtterance(text);
       const voiceIdx = document.getElementById('voiceSelect').value;
       utterance.voice = voices[voiceIdx];
       utterance.onend = () => { document.getElementById('status').innerText = "Done speaking."; };
-      utterance.onerror = () => { document.getElementById('status').innerText = "Error speaking."; };
+      utterance.onerror = () => {
+        // Only show error if NOT stopped by user
+        if (!stoppedByUser) {
+          document.getElementById('status').innerText = "Error speaking.";
+        }
+      };
       document.getElementById('status').innerText = `Speaking (${utterance.voice.name})...`;
       window.speechSynthesis.speak(utterance);
     }
@@ -154,9 +162,12 @@
       window.speechSynthesis.resume();
       document.getElementById('status').innerText = "Resumed.";
     }
-    function stop() {
-      window.speechSynthesis.cancel();
-      document.getElementById('status').innerText = "Stopped.";
+    function stopSpeech() {
+      if (window.speechSynthesis.speaking) {
+        stoppedByUser = true;
+        window.speechSynthesis.cancel();
+        document.getElementById('status').innerText = "Stopped.";
+      }
     }
   </script>
 </body>
