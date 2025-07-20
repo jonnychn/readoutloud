@@ -6,28 +6,59 @@
   <style>
     body { font-family: sans-serif; max-width: 500px; margin: 2em auto; }
     textarea { width: 100%; height: 120px; margin-bottom: 1em; font-size: 1em; }
-    button { font-size: 1.1em; padding: 0.5em 1em; }
+    select, button { font-size: 1.1em; margin-right: 0.5em; }
   </style>
 </head>
 <body>
   <h2>Paste & Listen</h2>
   <textarea id="text" placeholder="Paste your text here..."></textarea><br>
+  <select id="voiceSelect"></select><br><br>
   <button onclick="speak()">Read Out Loud</button>
+  <button onclick="pause()">Pause</button>
+  <button onclick="resume()">Resume</button>
   <button onclick="stop()">Stop</button>
   <p id="status"></p>
   <script>
+    let voices = [];
+    function populateVoices() {
+      voices = window.speechSynthesis.getVoices();
+      const voiceSelect = document.getElementById('voiceSelect');
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.text = `${voice.name} (${voice.lang})${voice.default ? ' [default]' : ''}`;
+        voiceSelect.add(option);
+      });
+    }
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    let utterance;
     function speak() {
       const text = document.getElementById('text').value.trim();
       if (!text) {
         document.getElementById('status').innerText = "Please paste some text.";
         return;
       }
-      const utterance = new SpeechSynthesisUtterance(text);
+      stop();
+      utterance = new SpeechSynthesisUtterance(text);
+      const voiceIdx = document.getElementById('voiceSelect').value;
+      utterance.voice = voices[voiceIdx];
       utterance.onend = () => { document.getElementById('status').innerText = "Done speaking."; };
       utterance.onerror = () => { document.getElementById('status').innerText = "Error speaking."; };
-      document.getElementById('status').innerText = "Speaking...";
-      window.speechSynthesis.cancel(); // Stop any ongoing speech
+      document.getElementById('status').innerText = `Speaking (${utterance.voice.name})...`;
       window.speechSynthesis.speak(utterance);
+    }
+    function pause() {
+      window.speechSynthesis.pause();
+      document.getElementById('status').innerText = "Paused.";
+    }
+    function resume() {
+      window.speechSynthesis.resume();
+      document.getElementById('status').innerText = "Resumed.";
     }
     function stop() {
       window.speechSynthesis.cancel();
