@@ -116,16 +116,23 @@
         voiceSelect.add(option);
       });
 
-      // Try to select "Aaron (en-US)" if available
-      let foundAaron = false;
+      // Prioritize "Google US English", then "Aaron (en-US)", then fallback to first
+      let selectedIndex = 0;
       for (let i = 0; i < voices.length; i++) {
-        if (voices[i].name.toLowerCase().includes("aaron") && voices[i].lang.toLowerCase() === "en-us") {
-          voiceSelect.value = i;
-          foundAaron = true;
+        if (voices[i].name === "Google US English") {
+          selectedIndex = i;
           break;
         }
       }
-      if (!foundAaron && voices.length) voiceSelect.value = 0;
+      if (!voices[selectedIndex] || voices[selectedIndex].name !== "Google US English") {
+        for (let i = 0; i < voices.length; i++) {
+          if (voices[i].name.toLowerCase().includes("aaron") && voices[i].lang.toLowerCase() === "en-us") {
+            selectedIndex = i;
+            break;
+          }
+        }
+      }
+      voiceSelect.value = selectedIndex;
     }
 
     populateVoices();
