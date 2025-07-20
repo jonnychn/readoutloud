@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Paste & Listen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 2em auto; }
+    textarea { width: 100%; height: 120px; margin-bottom: 1em; font-size: 1em; }
+    button { font-size: 1.1em; padding: 0.5em 1em; }
+  </style>
+</head>
+<body>
+  <h2>Paste & Listen</h2>
+  <textarea id="text" placeholder="Paste your text here..."></textarea><br>
+  <button onclick="speak()">Read Out Loud</button>
+  <button onclick="stop()">Stop</button>
+  <p id="status"></p>
+  <script>
+    function speak() {
+      const text = document.getElementById('text').value.trim();
+      if (!text) {
+        document.getElementById('status').innerText = "Please paste some text.";
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => { document.getElementById('status').innerText = "Done speaking."; };
+      utterance.onerror = () => { document.getElementById('status').innerText = "Error speaking."; };
+      document.getElementById('status').innerText = "Speaking...";
+      window.speechSynthesis.cancel(); // Stop any ongoing speech
+      window.speechSynthesis.speak(utterance);
+    }
+    function stop() {
+      window.speechSynthesis.cancel();
+      document.getElementById('status').innerText = "Stopped.";
+    }
+  </script>
+</body>
+</html>
