@@ -139,15 +139,17 @@
         document.getElementById('status').innerText = "Please paste some text.";
         return;
       }
-      stopSpeech(); // Stop any ongoing speech
-      stoppedByUser = false;
+      // Cancel any ongoing speech before starting a new one
+      if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
+        window.speechSynthesis.cancel();
+      }
+      stoppedByUser = false; // Reset stop flag
       utterance = new SpeechSynthesisUtterance(text);
       const voiceIdx = document.getElementById('voiceSelect').value;
       utterance.voice = voices[voiceIdx];
       utterance.onend = () => { document.getElementById('status').innerText = "Done speaking."; };
-      utterance.onerror = () => {
-        // Only show error if NOT stopped by user
-        if (!stoppedByUser) {
+      utterance.onerror = (event) => {
+        if (!stoppedByUser && event.error !== "interrupted") {
           document.getElementById('status').innerText = "Error speaking.";
         }
       };
@@ -163,7 +165,7 @@
       document.getElementById('status').innerText = "Resumed.";
     }
     function stopSpeech() {
-      if (window.speechSynthesis.speaking) {
+      if (window.speechSynthesis.speaking || window.speechSynthesis.paused) {
         stoppedByUser = true;
         window.speechSynthesis.cancel();
         document.getElementById('status').innerText = "Stopped.";
