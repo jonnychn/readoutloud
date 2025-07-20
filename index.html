@@ -4,20 +4,102 @@
   <title>Paste & Listen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; max-width: 500px; margin: 2em auto; }
-    textarea { width: 100%; height: 120px; margin-bottom: 1em; font-size: 1em; }
-    select, button { font-size: 1.1em; margin-right: 0.5em; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 480px;
+      margin: 3em auto;
+      background: #fff;
+      border-radius: 1.5em;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      padding: 2em 1.5em;
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 1.7em;
+      text-align: center;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin: 0.8em 0 0.2em 0.2em;
+    }
+    textarea {
+      width: 100%;
+      min-height: 110px;
+      font-size: 1em;
+      padding: 1em;
+      border-radius: 0.8em;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 0.8em;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+    select {
+      width: 100%;
+      font-size: 1.08em;
+      padding: 0.7em 0.6em;
+      border-radius: 0.7em;
+      border: 1px solid #e2e8f0;
+      background: #f1f5f9;
+      margin-bottom: 1.2em;
+      margin-top: 0.2em;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8em;
+      margin-bottom: 1em;
+      justify-content: center;
+    }
+    button {
+      flex: 1 1 40%;
+      padding: 0.85em 0;
+      font-size: 1.08em;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 0.8em;
+      cursor: pointer;
+      transition: background 0.18s;
+      font-weight: 500;
+    }
+    button:active {
+      background: #1e40af;
+    }
+    #status {
+      text-align: center;
+      color: #475569;
+      min-height: 1.5em;
+      margin-top: 0.6em;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 1.1em 0.5em; }
+      h2 { font-size: 1.3em; }
+      button { font-size: 1em; }
+      textarea { font-size: 0.97em; }
+    }
   </style>
 </head>
 <body>
-  <h2>Paste & Listen</h2>
-  <textarea id="text" placeholder="Paste your text here..."></textarea><br>
-  <select id="voiceSelect"></select><br><br>
-  <button onclick="speak()">Read Out Loud</button>
-  <button onclick="pause()">Pause</button>
-  <button onclick="resume()">Resume</button>
-  <button onclick="stop()">Stop</button>
-  <p id="status"></p>
+  <div class="container">
+    <h2>Paste & Listen</h2>
+    <label for="text">Text to Speak</label>
+    <textarea id="text" placeholder="Paste your text here..."></textarea>
+    <label for="voiceSelect">Choose Voice</label>
+    <select id="voiceSelect"></select>
+    <div class="controls">
+      <button onclick="speak()">Read Aloud</button>
+      <button onclick="pause()">Pause</button>
+      <button onclick="resume()">Resume</button>
+      <button onclick="stop()">Stop</button>
+    </div>
+    <p id="status"></p>
+  </div>
   <script>
     let voices = [];
     function populateVoices() {
@@ -30,6 +112,18 @@
         option.text = `${voice.name} (${voice.lang})${voice.default ? ' [default]' : ''}`;
         voiceSelect.add(option);
       });
+
+      // Try to select "Aaron (en-US)" if available
+      let foundAaron = false;
+      for (let i = 0; i < voices.length; i++) {
+        if (voices[i].name.toLowerCase().includes("aaron") && voices[i].lang.toLowerCase() === "en-us") {
+          voiceSelect.value = i;
+          foundAaron = true;
+          break;
+        }
+      }
+      // Else default
+      if (!foundAaron && voices.length) voiceSelect.value = 0;
     }
     populateVoices();
     if (speechSynthesis.onvoiceschanged !== undefined) {
