@@ -39,14 +39,29 @@
       box-sizing: border-box;
       resize: vertical;
     }
+    .user-note {
+      background: #e6ffed;
+      color: #166534;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 0.8em;
+      font-size: 0.99em;
+      padding: 0.75em 1em;
+      margin-bottom: 1em;
+      margin-top: -0.1em;
+      line-height: 1.4;
+    }
     .info-bar {
+      background: #e6fffa;
+      color: #134e4a;
+      border: 1.5px solid #99f6e4;
+      border-radius: 0.8em;
       font-size: 1em;
-      color: #475569;
       margin-bottom: 1em;
       display: flex;
       flex-wrap: wrap;
       gap: 1.2em;
       align-items: center;
+      padding: 0.6em 1em;
     }
     select {
       width: 100%;
@@ -100,7 +115,11 @@
     <h2>Paste & Listen</h2>
     <label for="text">Text to Speak</label>
     <textarea id="text" placeholder="Paste your text here..." oninput="updateInfo()"></textarea>
+    <div class="user-note">
+      Works best for shorter passages (under <b>570 words</b>, about <b>4 minutes</b> at 1x speed).
+    </div>
     <div class="info-bar">
+      <span id="charCount"></span>
       <span id="wordCount"></span>
       <span id="duration"></span>
     </div>
@@ -225,6 +244,7 @@
     function updateInfo() {
       const text = document.getElementById('text').value.trim();
       const speed = parseFloat(document.getElementById('speedSelect').value);
+      const charCount = text.length;
       const wordCount = countWords(text);
 
       // Estimate duration (in minutes)
@@ -233,6 +253,7 @@
         duration = wordCount / (DEFAULT_WPM * speed);
       }
 
+      document.getElementById('charCount').innerText = `Characters: ${charCount}`;
       document.getElementById('wordCount').innerText = `Words: ${wordCount}`;
       document.getElementById('duration').innerText =
         wordCount > 0
