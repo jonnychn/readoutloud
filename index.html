@@ -63,49 +63,6 @@
       align-items: center;
       padding: 0.6em 1em;
     }
-    .mic-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.6em;
-      margin-bottom: 0.3em;
-      justify-content: left;
-    }
-    .mic-btn {
-      background: #dbeafe;
-      border: none;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.15s;
-      outline: none;
-    }
-    .mic-btn.active {
-      background: #facc15;
-    }
-    .mic-btn svg {
-      width: 26px;
-      height: 26px;
-      fill: #2563eb;
-    }
-    .mic-status {
-      color: #1e293b;
-      font-size: 1em;
-    }
-    .mic-note {
-      color: #92400e;
-      background: #fef3c7;
-      border: 1px solid #fde68a;
-      border-radius: 0.6em;
-      padding: 0.7em 1em;
-      font-size: 0.97em;
-      margin-bottom: 1.2em;
-      margin-top: -0.4em;
-      line-height: 1.35;
-    }
     .send-bar {
       display: flex;
       gap: 0.8em;
@@ -194,13 +151,6 @@
       <span id="charCount"></span>
       <span id="wordCount"></span>
       <span id="duration"></span>
-    </div>
-    <div class="mic-bar">
-      <button class="mic-btn" id="micBtn" title="Dictate text"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.92V21h-3a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-2.08A7 7 0 0 0 17 12z"></path></svg></button>
-      <span class="mic-status" id="micStatus"></span>
-    </div>
-    <div class="mic-note">
-      Dictation (speech-to-text) only works on desktop browsers like Chrome. Most mobile browsers do not support this feature.
     </div>
     <label for="voiceSelect">Choose Voice</label>
     <select id="voiceSelect"></select>
@@ -363,60 +313,6 @@
       const subject = encodeURIComponent('Text from Paste & Listen');
       const body = encodeURIComponent(document.getElementById('text').value);
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    }
-
-    // Speech Recognition (Speech-to-Text / Dictation)
-    let recognition, recognizing = false;
-    const micBtn = document.getElementById('micBtn');
-    const micStatus = document.getElementById('micStatus');
-
-    function isSpeechRecognitionSupported() {
-      return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-    }
-
-    if (isSpeechRecognitionSupported()) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        recognizing = true;
-        micBtn.classList.add('active');
-        micStatus.innerText = "Listening...";
-      };
-      recognition.onerror = (e) => {
-        recognizing = false;
-        micBtn.classList.remove('active');
-        micStatus.innerText = "Could not recognize speech.";
-      };
-      recognition.onend = () => {
-        recognizing = false;
-        micBtn.classList.remove('active');
-        micStatus.innerText = "";
-      };
-      recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = 0; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
-        }
-        if (transcript) {
-          const textArea = document.getElementById('text');
-          textArea.value += (textArea.value.trim() ? ' ' : '') + transcript.trim();
-          updateInfo();
-        }
-      };
-      micBtn.onclick = function() {
-        if (recognizing) {
-          recognition.stop();
-        } else {
-          recognition.start();
-        }
-      };
-    } else {
-      micBtn.disabled = true;
-      micStatus.innerText = "Speech-to-text not supported in this browser/device.";
     }
 
     window.onload = updateInfo;
